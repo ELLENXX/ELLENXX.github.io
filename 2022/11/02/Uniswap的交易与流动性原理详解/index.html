@@ -28,19 +28,19 @@
 <meta property="og:site_name" content="ELLEN&#39;s BLOG">
 <meta property="og:description" content="title: Uniswap系列（二）｜Uniswap的交易与流动性池子原理详解 ​	由于Uniswap v1版本只进行概念验证，并没有真正的进行交易，所以本系列不单独讲v1的原理，主要还是通过分析现在使用最多的Uniswap v2版本，来了解Uniswap的核心原理。 1.交易所​	传统的中心化交易所，以股票、公司债券等为交易对象的叫证券交易所，以大宗商品(如棉花、小麦等)为交易对象的叫商品交易">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/public/images/image-20221101175859542.png">
-<meta property="og:image" content="http://example.com/public/images/image-20221102104721074.png">
-<meta property="og:image" content="http://example.com/public/images/image-20221102105320892.png">
-<meta property="og:image" content="http://example.com/public/images/image-20221102122324589.png">
-<meta property="og:image" content="http://example.com/public/images/image-20221102125528344.png">
-<meta property="og:image" content="http://example.com/public/images/image-20221102132232247.png">
-<meta property="og:image" content="http://example.com/public/images/image-20221102133727220.png">
-<meta property="og:image" content="http://example.com/public/images/image-20221102142719452.png">
+<meta property="og:image" content="http://example.com/images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221101175859542.png">
+<meta property="og:image" content="http://example.com/images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102104721074.png">
+<meta property="og:image" content="http://example.com/images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102105320892.png">
+<meta property="og:image" content="http://example.com/images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102122324589.png">
+<meta property="og:image" content="http://example.com/images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102125528344.png">
+<meta property="og:image" content="http://example.com/images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102132232247.png">
+<meta property="og:image" content="http://example.com/images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102133727220.png">
+<meta property="og:image" content="http://example.com/images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102142719452.png">
 <meta property="article:published_time" content="2022-11-02T06:42:29.877Z">
-<meta property="article:modified_time" content="2022-11-02T06:56:48.625Z">
+<meta property="article:modified_time" content="2022-11-02T07:18:05.211Z">
 <meta property="article:author" content="ELLEN">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/public/images/image-20221101175859542.png">
+<meta name="twitter:image" content="http://example.com/images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221101175859542.png">
 
 
 <link rel="canonical" href="http://example.com/2022/11/02/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/">
@@ -204,7 +204,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2022-11-02 14:42:29 / Modified: 14:56:48" itemprop="dateCreated datePublished" datetime="2022-11-02T14:42:29+08:00">2022-11-02</time>
+      <time title="Created: 2022-11-02 14:42:29 / Modified: 15:18:05" itemprop="dateCreated datePublished" datetime="2022-11-02T14:42:29+08:00">2022-11-02</time>
     </span>
 
   
@@ -249,16 +249,16 @@
 <td>1</td>
 </tr>
 </tbody></table>
-<p>​	<img src="/../../public/images/image-20221101175859542.png" alt="image-20221101175859542"></p>
+<p>​	<img src="/../images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221101175859542.png" alt="image-20221101175859542"></p>
 <p>​	如果该交易所足够繁荣，那么只要价格合理，买卖双方的交易会很快匹配到合适的订单。相反，如果平台上的买卖双方不够活跃，这个时候用户发出的买单或买单可能很长时间才会有找到合适的交易方进行交易，就会出现长时间挂单的情况，导致效率低下。为了解决这种问题，就出现了做市商。</p>
 <h2 id="2-做市商"><a href="#2-做市商" class="headerlink" title="2.做市商"></a>2.做市商</h2><p>​	做市商是指在传统证券市场上，由具备一定实力（资金足够支持用户大金额交易，因为它要同时承担买方和卖方的角色）和信誉（不能出现机构随意操控市场的情况）的独立证券经营法人作为特许交易商。</p>
 <p>​	做市商不断向公众投资者报出某些特定证券的买卖价格，并在该价位上接受公众投资者的买卖要求，以其自有资金和证券与投资者进行证券交易。买卖双方不需等待交易对手出现，只要有做市商出面承担交易对手方既可达成交易。</p>
 <p>​	做市商通过做市制度来维持市场的流动性，满足公众投资者的投资需求。做市商通过买卖报价的适当差额来补偿所提供服务的成本费用，并实现一定的利润。</p>
-<p><img src="/../../public/images/image-20221102104721074.png" alt="image-20221102104721074"></p>
+<p><img src="/../images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102104721074.png" alt="image-20221102104721074"></p>
 <p>​		有了做市商后，卖方挂的单会由做市商给买下来，买家买的单会由做市商卖给买家。也就是说买卖双方不再是直接交易了，实际上买卖双方都在和做市商进行交易。有些人会觉得做市商和庄家一样，其实不是的，做市商是有情怀，他们要去维护市场的稳定繁荣。而庄家可不给你讲什么情怀，他们唯恐天下不乱，就希望市场混乱，好进行高买低卖，以此牟利。做市商给出的买卖价格是双向报价，它会有一个对市场的大概评估，当过于低迷或者是过于火热的时候，超出估值范围，做市商会控制估值维护市场稳定。</p>
 <h2 id="3-自动化做市商"><a href="#3-自动化做市商" class="headerlink" title="3.自动化做市商"></a>3.自动化做市商</h2><p>​	而在区块链的世界中，如果要复刻中心化交易所的模式，是有缺陷的。第一点：无法确定做市商有足够的资本。第二点：区块链没有监管机构，无法完全避免做市商监守自盗的可能性。</p>
 <p>​	所以Uniswap提出了一种通过智能合约实现自动化做市商（Automated Market Maker，AMM）来与用户进行交易的去中心化交易协议，用户资产完全由自己控制，而智能合约中锁定的做市资产也可公开查看，是一种更安全透明的交易方式。</p>
-<p><img src="/../../public/images/image-20221102105320892.png" alt="image-20221102105320892"></p>
+<p><img src="/../images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102105320892.png" alt="image-20221102105320892"></p>
 <p>​	从上图可以看到，现在买卖方都只和区块链中的自动做市商智能合约程序进行交互了，自动做市商要实现能够自动和买&#x2F;卖方完成交易，需要满足几个特性：</p>
 <ul>
 <li>要持有资产，由于要做双向报价，那就是一种代币换取另一种代币，所以要持有两种资产。</li>
@@ -278,21 +278,21 @@
 
 <p>​	此时：LPS&#x3D; sqrt(100,000*1000)&#x3D;10000。使用几何平均数计算的好处是可以使LPS在任何时候都不受质押的两种代币的比例影响，因为两种代币在流动性池中的比例可能与市场价格不符。</p>
 <p>​	如下图所示，现在质押了10000个A代币，1000个B代币，产生了10000个LPS。现在A:B&#x3D;100:1，也就是说现在100个A代币可以兑换1个B代币。而流动性提供者小明获持有100%的LPS，共10000LPS。</p>
-<p><img src="/../../public/images/image-20221102122324589.png" alt="image-20221102122324589"></p>
+<p><img src="/../images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102122324589.png" alt="image-20221102122324589"></p>
 <p>​		需要注意的是，在实际情况下，第一次提供流动性时，返回的LPS其实是有调整的，任何流动性池在启用之初都要在零地址中锁定<code>1e-15</code>的LPS。原因是智能合约中LPS的位数是18位，理论上有一种情况，就是初始情况的LPS&#x3D;1，就是最小量即<code>1e-18</code> LPS。如果此时1LPS&#x3D;1000$的话，后续流动性提供者必须要质押价值大于1000$的流动性才可以获得1个LPS，导致添加流动性的成本变高，这是不利于维持交易的流动性的。在Uniswap白皮书中把这种极端情况认为是一种可能的人为攻击，为了提高这种攻击的成本，在新创建流动性池的时候，设置了一个最小流动性值<code>MINIMUM_LIQUIDITY=1e-15=1000</code>，即LPS最小单位的1000倍，任何流动性池在启用之初都要在零地址中锁定<code>1e-15</code>的LPS。所以修订后的图为：</p>
-<p><img src="/../../public/images/image-20221102125528344.png" alt="image-20221102125528344"></p>
+<p><img src="/../images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102125528344.png" alt="image-20221102125528344"></p>
 <p>​	在这种机制之下，如果人为把LPS价值提升到1e-18 &#x3D; $100的话，就需要在零地址中锁定价值 $100 * 1e3 &#x3D; $100000 的LPS，这样就极大地提升了攻击成本，而且在通常情况下，1e-15的LPS的价值是很小的，甚至可以忽略，所以修订图中第一次质押后获得的LPS虽然要减少1e-15LPS，但约等于10000不变。当然也会有极端情况，例如Pair中质押的两种代币都没有小数，而且单价很高，那么1e-15LPS的价值还是可以感知到的，不过这种类型的代币也不太适合用Uniswap协议来交易。</p>
 <h3 id="4-2-添加-x2F-销毁流动性"><a href="#4-2-添加-x2F-销毁流动性" class="headerlink" title="4.2 添加&#x2F;销毁流动性"></a>4.2 添加&#x2F;销毁流动性</h3><p>​	后续，如果要继续提供流动性，则按新增的流动性等比例增发LPS，假设当前Pool中X的量为x_current，Y的量为y_current，存量LPS为s_current，新增加的流动性中的X为x_add，Y为y_add（通常情况下x_current&#x2F;y_current &#x3D; x_add&#x2F;y_add，即等比例增加流动性），则新增发的LPS为s_add:</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">s_add = <span class="title function_">min</span>(x_add/x_current, y_add/y_current) * s_current</span><br></pre></td></tr></table></figure>
 
 <p>​	比如增加2000个A token，20个B token，那么按照公式计算，会增发200LPS。如果说我要增加2000个A token，30个B token，那么会取min(2000&#x2F;100000，30&#x2F;1000)*10000&#x3D;50&#x3D;200，还是会增发200LPS，另一种多出来B的不会去质押，会返还避免损失。当然，如果直接操作Pair合约没有自己进行校验，可能导致多余的的B不会返还。</p>
-<p><img src="/../../public/images/image-20221102132232247.png" alt="image-20221102132232247"></p>
+<p><img src="/../images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102132232247.png" alt="image-20221102132232247"></p>
 <p>​	如果要销毁流动性，就会等比例的返还A、B两种token，计算公式如下：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">x_withdraw = s_remove/s_current * x_current</span><br><span class="line">y_withdraw = s_remove/s_current * y_current</span><br></pre></td></tr></table></figure>
 
 <p>比如现在销毁100LPS，那么就会取的A 共计（100&#x2F;10200）* 102000 &#x3D; 1000，B共计：（100&#x2F;10200）* 1020 &#x3D; 10。此时LPS &#x3D; 10200-100&#x3D;10100。</p>
-<p><img src="/../../public/images/image-20221102133727220.png" alt="image-20221102133727220"></p>
-<h3 id="4-3-交易"><a href="#4-3-交易" class="headerlink" title="4.3 交易"></a>4.3 交易</h3><p><img src="/../../public/images/image-20221102142719452.png" alt="image-20221102142719452"></p>
+<p><img src="/../images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102133727220.png" alt="image-20221102133727220"></p>
+<h3 id="4-3-交易"><a href="#4-3-交易" class="headerlink" title="4.3 交易"></a>4.3 交易</h3><p><img src="/../images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102142719452.png" alt="image-20221102142719452"></p>
 <p>​	如上图所示，该流动性池子最开始有100X和1Y，所以初始价格是100个Xtoken，可以兑换1个Ytoken。而价格曲线遵循<code>x*y=k</code>，所以：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(x+x_swap) * (y-y_swap) = k</span><br><span class="line">y_swap = y- k/(x+x_swap) = (x_swap*y)/x+x_swap</span><br></pre></td></tr></table></figure>
 
