@@ -120,7 +120,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-count">4</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -150,6 +150,330 @@
 
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/11/23/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9C%E4%B8%80%E4%B8%AA%E5%85%AC%E5%BC%80_transfer%E6%94%BB%E5%87%BB%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="ELLEN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ELLEN's BLOG">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | ELLEN's BLOG">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/11/23/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9C%E4%B8%80%E4%B8%AA%E5%85%AC%E5%BC%80_transfer%E6%94%BB%E5%87%BB%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">攻击事件分析｜一个公开_transfer攻击分析</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2022-11-23 10:08:00 / Modified: 10:19:14" itemprop="dateCreated datePublished" datetime="2022-11-23T10:08:00+08:00">2022-11-23</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="基本信息"><a href="#基本信息" class="headerlink" title="基本信息"></a>基本信息</h2><p>这个攻击事件只是一个小事件，一次攻击获利不多，不过攻击者将这类型漏洞攻击自动化了，从攻击者的交易记录来看，还是有一些获利的。</p>
+<p><strong>交易链接</strong>：</p>
+<p><a target="_blank" rel="noopener" href="https://dashboard.tenderly.co/tx/bsc/0xea49cf1fc32647f7938f80c81097fe75ee88cc0aab347a5d40f2e3832edada92">https://dashboard.tenderly.co/tx/bsc/0xea49cf1fc32647f7938f80c81097fe75ee88cc0aab347a5d40f2e3832edada92</a></p>
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9C%E4%B8%80%E4%B8%AA%E5%85%AC%E5%BC%80_transfer%E6%94%BB%E5%87%BB%E5%88%86%E6%9E%90/image-20221122200317537.png" alt="image-20221122200317537"></p>
+<p><strong>攻击者地址</strong>：0xe3c5f54ab7a7a46810b24b272364c418b0151948</p>
+<p><strong>攻击合约</strong>：</p>
+<p>0x4c8986ed92f6cb908733206821d537927e4dfc29</p>
+<p><strong>分析工具</strong>：</p>
+<p><a target="_blank" rel="noopener" href="https://phalcon.blocksec.com/tx/bsc/0xea49cf1fc32647f7938f80c81097fe75ee88cc0aab347a5d40f2e3832edada92">https://phalcon.blocksec.com/tx/bsc/0xea49cf1fc32647f7938f80c81097fe75ee88cc0aab347a5d40f2e3832edada92</a></p>
+<p><a target="_blank" rel="noopener" href="https://dashboard.tenderly.co/tx/bsc/0xea49cf1fc32647f7938f80c81097fe75ee88cc0aab347a5d40f2e3832edada92/debugger?trace=0.11">https://dashboard.tenderly.co/tx/bsc/0xea49cf1fc32647f7938f80c81097fe75ee88cc0aab347a5d40f2e3832edada92/debugger?trace=0.11</a></p>
+<p><a target="_blank" rel="noopener" href="https://bscscan.com/tx/0xea49cf1fc32647f7938f80c81097fe75ee88cc0aab347a5d40f2e3832edada92#eventlog">https://bscscan.com/tx/0xea49cf1fc32647f7938f80c81097fe75ee88cc0aab347a5d40f2e3832edada92#eventlog</a></p>
+<h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>这次攻击利用了公开的_transfer漏洞，漏洞在WCH token合约内。</p>
+<p><a target="_blank" rel="noopener" href="https://bscscan.com/address/0x011e02fd0da512841692279879d6ec49bf74ba7a#code#L632">https://bscscan.com/address/0x011e02fd0da512841692279879d6ec49bf74ba7a#code#L632</a></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">transferMultiWallet</span>(<span class="params">address sender,address recipient, uint256 amount</span>) external returns (bool) &#123;</span><br><span class="line">    <span class="title function_">_transfer</span>(sender, recipient, amount);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">_transfer</span>(<span class="params">address sender, address recipient, uint256 amount</span>) internal &#123;</span><br><span class="line">    <span class="built_in">require</span>(sender != <span class="title function_">address</span>(<span class="number">0</span>), <span class="string">&quot;BEP20: transfer from the zero address&quot;</span>);</span><br><span class="line">    <span class="built_in">require</span>(recipient != <span class="title function_">address</span>(<span class="number">0</span>), <span class="string">&quot;BEP20: transfer to the zero address&quot;</span>);</span><br><span class="line"></span><br><span class="line">    _balances[sender] = _balances[sender].<span class="title function_">sub</span>(amount, <span class="string">&quot;BEP20: transfer amount exceeds balance&quot;</span>);</span><br><span class="line">    _balances[recipient] = _balances[recipient].<span class="title function_">add</span>(amount);</span><br><span class="line">    emit <span class="title class_">Transfer</span>(sender, recipient, amount);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，调用transferMultiWallet就可以将任意帐户的WCH发送到其他地址去，然后调用了sync强制同步PancakePair WCH-BUSD池中的储备量与余额，导致WCH价格飙升，然后再出售WCH将PancakePair WCH-BUSD池中的BUSD获取完。</p>
+<h2 id="攻击步骤分析"><a href="#攻击步骤分析" class="headerlink" title="攻击步骤分析"></a>攻击步骤分析</h2><p>如下：</p>
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9C%E4%B8%80%E4%B8%AA%E5%85%AC%E5%BC%80_transfer%E6%94%BB%E5%87%BB%E5%88%86%E6%9E%90/image-20221122213929496.png" alt="image-20221122213929496"></p>
+<p>通过分析工具：<a target="_blank" rel="noopener" href="https://phalcon.blocksec.com/tx/bsc/0xea49cf1fc32647f7938f80c81097fe75ee88cc0aab347a5d40f2e3832edada92">https://phalcon.blocksec.com/tx/bsc/0xea49cf1fc32647f7938f80c81097fe75ee88cc0aab347a5d40f2e3832edada92</a></p>
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9C%E4%B8%80%E4%B8%AA%E5%85%AC%E5%BC%80_transfer%E6%94%BB%E5%87%BB%E5%88%86%E6%9E%90/image-20221122215419126.png" alt="image-20221122215419126"></p>
+<p>下面是对具体步骤的详细拆分：</p>
+<table>
+<thead>
+<tr>
+<th>action</th>
+<th>From</th>
+<th>To</th>
+<th>Value</th>
+<th>Input</th>
+<th>Output</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>* CALL</td>
+<td>0xe3c(攻击者)</td>
+<td>0x4c8(攻击合约)</td>
+<td>0.001BNB</td>
+<td>0x9eb6f829……（raw data）</td>
+<td>0x</td>
+<td>猜测调用攻击合约某个方法，并发送0.01BNB用作燃料费</td>
+</tr>
+<tr>
+<td>-staticall</td>
+<td>0x4c8(攻击合约)</td>
+<td>0x011(WCH token)</td>
+<td></td>
+<td>0x8da5cb5b</td>
+<td>0x15e（WCH token 持有人）</td>
+<td>获取WCHtoken的创建者</td>
+</tr>
+<tr>
+<td>-staticall</td>
+<td>0x4c8(攻击合约)</td>
+<td>0x10e(PancakeRouter)</td>
+<td></td>
+<td>0xc45a0155</td>
+<td>0xca14（Pancake Factory）</td>
+<td>获取Pancake Factory地址</td>
+</tr>
+<tr>
+<td>-getPair</td>
+<td>0x4c8(攻击合约)</td>
+<td>0xca14（Pancake Factory）</td>
+<td></td>
+<td>{0x011(WCH token), 0xe9(BUSD token)}</td>
+<td>0x257(PancakePair WCH-BUSD)</td>
+<td>获取WCH-BUSD交易池</td>
+</tr>
+<tr>
+<td>-balanceOf</td>
+<td>0x4c8(攻击合约)</td>
+<td>0x011(WCH token)</td>
+<td></td>
+<td>{amunt:’0x257’}</td>
+<td>435517532569589321744</td>
+<td>获取0x257(PancakePair WCH-BUSD)中WCH的余额</td>
+</tr>
+<tr>
+<td>* transferMultiWallet</td>
+<td>0x4c8(攻击合约)</td>
+<td>0x011(WCH token)</td>
+<td></td>
+<td>{sender:’0x257’，’recipient’:’0x15e’，amount:’435517532569589321734’}</td>
+<td>True</td>
+<td>通过任意transfer将0x257(PancakePair WCH-BUSD)中WCH的余额留下10个，其余全部转移到0x15e（WCH token 持有人）地址上，其实0x15也可以替换为其余可用地址，不是必定的</td>
+</tr>
+<tr>
+<td>* PancakePair.sync</td>
+<td>0x257(PancakePair WCH-BUSD)</td>
+<td></td>
+<td></td>
+<td></td>
+<td>True</td>
+<td>调用0x257(PancakePair WCH-BUSD)合约的sync方法进行同步，让合约储备量和余额（10）保持一致。此时WCH只剩下10，BUSD数量不变，为保证K值，导致WCH价格飙升</td>
+</tr>
+<tr>
+<td>* CALL</td>
+<td>0x4c8(攻击合约)</td>
+<td>0x257(PancakePair WCH-BUSD)</td>
+<td></td>
+<td>0xff6cae9</td>
+<td>0x</td>
+<td>调用0x257(PancakePair WCH-BUSD)执行某个方法，目的是确认0x257(PancakePair WCH-BUSD)中WCH和BUSD余额</td>
+</tr>
+<tr>
+<td>-balanceOf</td>
+<td>0x257(PancakePair WCH-BUSD)</td>
+<td>0x011(WCH token)</td>
+<td></td>
+<td>{amount: 0x257(PancakePair WCH-BUSD)}</td>
+<td>10</td>
+<td>查询0x257(PancakePair WCH-BUSD)中WCH余额，为10</td>
+</tr>
+<tr>
+<td>-balanceOf</td>
+<td>0x257(PancakePair WCH-BUSD)</td>
+<td>0xe9(BUSD token)</td>
+<td></td>
+<td>{amunt: 0x257(PancakePair WCH-BUSD)}</td>
+<td>456365713891375952252</td>
+<td>查询0x257(PancakePair WCH-BUSD)中BUSD余额，为456365713891375952252</td>
+</tr>
+<tr>
+<td>* balanceOf</td>
+<td>0x4c8(攻击合约)</td>
+<td>0x011(WCH token)</td>
+<td></td>
+<td>{account: 0x15e(WCH持有者)}</td>
+<td>435517532569589321734</td>
+<td>查询WCH持有者中WCH余额，为435517532569589321734</td>
+</tr>
+<tr>
+<td>* transferMultiWallet</td>
+<td>0x4c8(攻击合约)</td>
+<td>0x011(WCH token)</td>
+<td></td>
+<td>{sender:’0x15e’,’recipient’:’0x15e’’0x257’,amount:’435517532569589321734’}</td>
+<td>True</td>
+<td>通过任意transfer，将0x15e(WCH持有者)中所有的WCH都发送给0x257(PancakePair WCH-BUSD)，这意味着现在有用户即将进行WCH-BUSD的兑换（swap），接下来就可以调用0x257(PancakePair WCH-BUSD)的swap方法将换取的BUSD兑换到任何地址了。需要注意，当前transfer和接下来的swap一定要在同一笔交易内完成，不可分割，不然其他人也可以通过swap方法转走这一笔BUSD。还值得注意的一点是，池子中的BUSD其实只需要10WCH就可以兑换完的。</td>
+</tr>
+<tr>
+<td>* getAmountOut</td>
+<td>0x4c8(攻击合约)</td>
+<td>0x10e(PancakeRouter)</td>
+<td></td>
+<td>{amountIn:435517532569589321734,reserverIn:10,reserverOut:456365713891375952252 }</td>
+<td>amountOut:456365713891375952241</td>
+<td>查询435517532569589321734WCH可以兑换多少BUSD，可换456365713891375952241</td>
+</tr>
+<tr>
+<td>* PancakePair.swap</td>
+<td>0x257(PancakePair WCH-BUSD)</td>
+<td>0x4c8(攻击合约)</td>
+<td></td>
+<td>{amount0Out:0,amount1Out:456365713891375952241,to:0x4c8(攻击合约)}</td>
+<td>true</td>
+<td>将BUSD兑换到0x4c8(攻击合约)。这里需要了解swap的特性，只要之前有人tranferWCH到Pair内，任何人都可以通过swap转走这笔钱，所以要保证transfer和swap一起</td>
+</tr>
+</tbody></table>
+<p>剩下的步骤就是把获得的BUSD换成BNB，就不做详述了。</p>
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9C%E4%B8%80%E4%B8%AA%E5%85%AC%E5%BC%80_transfer%E6%94%BB%E5%87%BB%E5%88%86%E6%9E%90/image-20221122215622414.png" alt="image-20221122215622414"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>此类问题的原因还是权限控制没有做好，将原本internal的方法公开了，导致任何人都可以调用原本的内部函数。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/11/15/%E6%9C%80%E6%96%B0%E4%BA%8B%E4%BB%B6%E8%AE%B0%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="ELLEN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ELLEN's BLOG">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | ELLEN's BLOG">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/11/15/%E6%9C%80%E6%96%B0%E4%BA%8B%E4%BB%B6%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">Untitled</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2022-11-15 17:16:01 / Modified: 17:16:03" itemprop="dateCreated datePublished" datetime="2022-11-15T17:16:01+08:00">2022-11-15</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="最新事件记录"><a href="#最新事件记录" class="headerlink" title="最新事件记录"></a>最新事件记录</h1><p>每天记录了解到的事件情况，知识以及感想</p>
+<h2 id="20221114——DeFiAI项目发生Rug-pull"><a href="#20221114——DeFiAI项目发生Rug-pull" class="headerlink" title="20221114——DeFiAI项目发生Rug pull"></a>20221114——DeFiAI项目发生Rug pull</h2><p><a target="_blank" rel="noopener" href="https://www.panewslab.com/zh/sqarticledetails/0kkl303a.html">DeFiAI项目发生Rug pull，合约部署者获利约4000万美元</a></p>
+<p>“Rug Pull”是指加密货币开发商突然放弃一个项目，毫无征兆的卷走投资者资金的欺诈事件。</p>
+<p>Rug Pull通常包含如下几种类型：</p>
+<ul>
+<li>窃取流动性：在发生窃取流动性的Rug Pull事件中，通常为项目方在资金池中占有较大的比重，当项目方将资金抽走时，便发生了Rug Pull。例如，8月25日，BSC链上RSHIB项目发生Rug Pull，RSHIB代币价格暴跌92%。这次Rug Pull就是合约部署者移除流动性，并向外部账户（EOA）地址发送约47枚BNB。</li>
+<li>限制出售：项目开发人员会在编写代码时对卖盘进行一个限定，只有项目方是唯一可以出售项目代币的一方，也就是唯一受益者。当散户投资者不断用手中的主流代币兑换项目代币，诈骗者就会评估收益，一旦符合预期，项目方就会立即执行相应操作，卷走投资者的资金跑路。虚拟货币“SQUID（鱿鱼币）”曾经发生过这一事件。</li>
+<li>倾销砸盘：项目方会广泛推广该项目，吸引用户购买代币，随着热度上升，代币价格上涨，项目方将手中持有的大量代币换成主流币，导致币价下跌，投资者手中代币贬值。2022年7月，狗狗币的衍生币项目Teddy Doge被质疑发生Rug Pull</li>
+</ul>
+<p>如何避免：</p>
+<ul>
+<li>看社媒、看网站、看白皮书，找疑点</li>
+<li>检查流动性池是否有锁定，关注锁定比例和代币价格</li>
+<li>是否有专业的第三方合约审计报告</li>
+<li>查看持有代币的地址以及各地址所占份额</li>
+<li>项目是否上架CEX</li>
+<li>神秘的创始人或者开发商是很大的风险</li>
+<li>拒绝KOL带货，关注项目本身，避免虚假广告影响判断</li>
+<li>项目创建时间的长短对Rug Pull的影响</li>
+</ul>
+<p>总结：市场有风险，投资需谨慎。对于信息不明、不全，可疑的，未经时间检验的项目不要盲目跟风。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
