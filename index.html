@@ -177,7 +177,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/01/20/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/" class="post-title-link" itemprop="url">Untitled</a>
+          <a href="/2023/01/20/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/" class="post-title-link" itemprop="url">默克尔树（Merkle Patricia Tree）详解</a>
         </h2>
 
         <div class="post-meta-container">
@@ -189,7 +189,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2023-01-20 17:04:48 / Modified: 17:20:34" itemprop="dateCreated datePublished" datetime="2023-01-20T17:04:48+08:00">2023-01-20</time>
+      <time title="Created: 2023-01-20 17:04:48 / Modified: 17:23:16" itemprop="dateCreated datePublished" datetime="2023-01-20T17:04:48+08:00">2023-01-20</time>
     </span>
 
   
@@ -202,10 +202,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <hr>
-<p>title: 默克尔树（Merkle Patricia Tree）详解</p>
-<hr>
-<h1 id="一、概念"><a href="#一、概念" class="headerlink" title="一、概念"></a>一、概念</h1><p>本文是阅读《深入以太坊智能合约开发》的附录A Merkle Patricia Tree后的知识归纳以及扩展。</p>
+          <h1 id="一、概念"><a href="#一、概念" class="headerlink" title="一、概念"></a>一、概念</h1><p>本文是阅读《深入以太坊智能合约开发》的附录A Merkle Patricia Tree后的知识归纳以及扩展。</p>
 <blockquote>
 <p>默克尔树（Merkle Patricia Tree）在以太坊中是一种通用的，用来存储键值对的数据结构，可以简称为“MPT”，是字典树Redix tree的变种，也是以太坊的核心算法之一。</p>
 <p>MPT对于树中节点的插入、查找、删除操作，这种结构可以提供对数级别的复杂度O(log(N))，所以它是一种相对高效的存储结构。</p>
