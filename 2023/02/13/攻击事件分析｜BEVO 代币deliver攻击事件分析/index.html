@@ -1,37 +1,437 @@
-{% extends '_layout.swig' %}
-{% import '_macro/post.swig' as post_template %}
-{% import '_macro/sidebar.swig' as sidebar_template %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
 
 
-{% block title %}{{ page.title }} | {{ config.title }}{% endblock %}
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
 
-{% block page_class %}page-post-detail{% endblock %}
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="事件背景北京时间2023年1月31日，在twitter上看到这样一条消息：  BEVO 代币被攻击，总共损失45000美元，导致BEVO 代币的价格下跌了 99%。 有趣的是，这个事件中还出现了抢跑，上演了一幕黑吃黑。 twitter：https:&#x2F;&#x2F;twitter.com&#x2F;peckshield&#x2F;status&#x2F;1619996999054667784 成功交易链接：https:&#x2F;&#x2F;bscscan.c">
+<meta property="og:type" content="article">
+<meta property="og:title" content="攻击事件分析｜BEVO 代币deliver攻击事件分析">
+<meta property="og:url" content="http://example.com/2023/02/13/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="ELLEN&#39;s BLOG">
+<meta property="og:description" content="事件背景北京时间2023年1月31日，在twitter上看到这样一条消息：  BEVO 代币被攻击，总共损失45000美元，导致BEVO 代币的价格下跌了 99%。 有趣的是，这个事件中还出现了抢跑，上演了一幕黑吃黑。 twitter：https:&#x2F;&#x2F;twitter.com&#x2F;peckshield&#x2F;status&#x2F;1619996999054667784 成功交易链接：https:&#x2F;&#x2F;bscscan.c">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20230213141240813.png">
+<meta property="og:image" content="http://example.com/images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20230213143457009.png">
+<meta property="og:image" content="http://example.com/images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20230213150214342.png">
+<meta property="og:image" content="http://example.com/images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20230213151242277.png">
+<meta property="og:image" content="http://example.com/images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20230213151328359.png">
+<meta property="og:image" content="http://example.com/images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20230213151311939.png">
+<meta property="article:published_time" content="2023-02-13T08:22:10.812Z">
+<meta property="article:modified_time" content="2023-02-13T08:28:13.675Z">
+<meta property="article:author" content="ELLEN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20230213141240813.png">
+
+<link rel="canonical" href="http://example.com/2023/02/13/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
 
 
-{% block content %}
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
 
-  <div id="posts" class="posts-expand">
-    {{ post_template.render(page) }}
+  <title>攻击事件分析｜BEVO 代币deliver攻击事件分析 | ELLEN's BLOG</title>
+  
 
-    <div class="post-spread">
-      {% if theme.jiathis %}
-        {% include '_partials/share/jiathis.swig' %}
-      {% elseif theme.baidushare %}
-        {% include '_partials/share/baidushare.swig' %}
-      {% elseif theme.add_this_id %}
-        {% include '_partials/share/add-this.swig' %}
-      {% elseif theme.duoshuo_shortname and theme.duoshuo_share %}
-        {% include '_partials/share/duoshuo_share.swig' %}
-      {% endif %}
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
     </div>
   </div>
 
-{% endblock %}
+  <div class="site-meta">
 
-{% block sidebar %}
-  {{ sidebar_template.render(true) }}
-{% endblock %}
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ELLEN's BLOG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
 
-{% block script_extra %}
-  {% include '_scripts/pages/post-details.swig' %}
-{% endblock %}
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/02/13/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ELLEN">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ELLEN's BLOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          攻击事件分析｜BEVO 代币deliver攻击事件分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-02-13 16:22:10 / 修改时间：16:28:13" itemprop="dateCreated datePublished" datetime="2023-02-13T16:22:10+08:00">2023-02-13</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="事件背景"><a href="#事件背景" class="headerlink" title="事件背景"></a>事件背景</h1><p>北京时间2023年1月31日，在twitter上看到这样一条消息：</p>
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20230213141240813.png" alt="image-20230213141240813"></p>
+<p>BEVO 代币被攻击，总共损失45000美元，导致BEVO 代币的价格下跌了 99%。</p>
+<p>有趣的是，这个事件中还出现了抢跑，上演了一幕黑吃黑。</p>
+<p>twitter：<a target="_blank" rel="noopener" href="https://twitter.com/peckshield/status/1619996999054667784">https://twitter.com/peckshield/status/1619996999054667784</a></p>
+<p>成功交易链接：<a target="_blank" rel="noopener" href="https://bscscan.com/tx/0xb97502d3976322714c828a890857e776f25c79f187a32e2d548dda1c315d2a7d">https://bscscan.com/tx/0xb97502d3976322714c828a890857e776f25c79f187a32e2d548dda1c315d2a7d</a></p>
+<p>被抢跑交易：<a target="_blank" rel="noopener" href="https://bscscan.com/tx/0x581c7674a6adfaa4351422781f6b674e2b7ac0fab0db9d46bfcb559ddd96cff8">https://bscscan.com/tx/0x581c7674a6adfaa4351422781f6b674e2b7ac0fab0db9d46bfcb559ddd96cff8</a></p>
+<p>分析工具：</p>
+<p><a target="_blank" rel="noopener" href="https://phalcon.blocksec.com/tx/bsc/0xb97502d3976322714c828a890857e776f25c79f187a32e2d548dda1c315d2a7d">https://phalcon.blocksec.com/tx/bsc/0xb97502d3976322714c828a890857e776f25c79f187a32e2d548dda1c315d2a7d</a></p>
+<p><a target="_blank" rel="noopener" href="https://dashboard.tenderly.co/tx/bsc/0xb97502d3976322714c828a890857e776f25c79f187a32e2d548dda1c315d2a7d">https://dashboard.tenderly.co/tx/bsc/0xb97502d3976322714c828a890857e776f25c79f187a32e2d548dda1c315d2a7d</a></p>
+<h1 id="二、事件分析"><a href="#二、事件分析" class="headerlink" title="二、事件分析"></a>二、事件分析</h1><h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>被攻击的原因在于<code>deliver</code>方法，当调用该合约的<code>deliver</code>方法时，会减少代币的总价值，导致计算余额出现了误差，造成储备量与余额的不平衡，攻击者通过<code>skim</code>获利。</p>
+<h2 id="攻击步骤"><a href="#攻击步骤" class="headerlink" title="攻击步骤"></a>攻击步骤</h2><p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20230213143457009.png" alt="image-20230213143457009"></p>
+<ol>
+<li><p>攻击者通过闪电贷获得了192.5 WBNB，并通过Pancake交换出来3,028,774,323,006,137,313 BEVO代币。</p>
+</li>
+<li><p>调用<code>deliver</code>方法，减少总额<code>_rTotal</code>数量。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">function deliver(uint256 tAmount) public &#123;</span><br><span class="line">        address sender = _msgSender();</span><br><span class="line">        require(!_isExcluded[sender], &quot;Excluded addresses cannot call this function&quot;);</span><br><span class="line">        (uint256 rAmount,,,,,,) = _getValues(tAmount);</span><br><span class="line">        _rOwned[sender] = _rOwned[sender].sub(rAmount);</span><br><span class="line">        _rTotal = _rTotal.sub(rAmount);</span><br><span class="line">        _tFeeTotal = _tFeeTotal.add(tAmount);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>3.调用<code>skim</code>方法，在<code>skim</code>中要查询池子中BEVO的余额，过程中会根据<code>_getRate()</code>方法计算BEVO的价值比率，然后计算出当前余额。</p>
+<p>先看<code>_getRate()</code>,计算公式是<code>rSupply.div(tSupply)</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">function _getRate() private view returns(uint256) &#123;</span><br><span class="line">        (uint256 rSupply, uint256 tSupply) = _getCurrentSupply();</span><br><span class="line">        return rSupply.div(tSupply);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20230213150214342.png" alt="image-20230213150214342"></p>
+<p>而从<code>_getCurrentSupply()</code>方法中得出的<code>rSupply</code>就和<code>_rTotal</code>有关，由于<code>deliver</code>导致<code>_rTotal</code>减少，所以<code>rSupply.div(tSupply)</code>的比值<code>currentRate</code>也随之减小。</p>
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20230213151242277.png" alt="image-20230213151242277"></p>
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20230213151328359.png" alt="image-20230213151328359"></p>
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20230213151311939.png" alt="image-20230213151311939"></p>
+<p>最终的余额是<code>rAmount.div(currentRate)</code>计算出来的，<code>rAmount</code>在执行过程中没有被改变过，所以分子不变分母减小，自然导致了余额变大了。</p>
+<p>计算出来余额：<code>6844218532359160336</code>,储备量：<code>2298813336114922094</code>,多出的<code>4545405196244238242</code>就被发给了攻击者。</p>
+<p>4.攻击者又调用了一次<code>deliver</code>，将<code>_rototal</code>再减少<code>4545405196244238242</code>，使余额与储备量不一致。然后调用了<code>swap</code>方法获利了337个BNB。除去闪电贷192.5个BNB，攻击者最终获得144.5个BNB，总计45000美元。</p>
+<h1 id="三、总结"><a href="#三、总结" class="headerlink" title="三、总结"></a>三、总结</h1><p>这起事件后风波没有停止，后来还出现了其他类似的攻击手法，有的攻击者在bsc链上批量扫描符合要求的代币并实施攻击。</p>
+<p>从这次攻击事件来看，金额计算模型设计需要谨慎，避免出现参数可控导致的问题，这是保证项目安全及其重要的部分。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/01/20/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/" rel="prev" title="默克尔树（Merkle Patricia Tree）详解">
+      <i class="fa fa-chevron-left"></i> 默克尔树（Merkle Patricia Tree）详解
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8B%E4%BB%B6%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">事件背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">二、事件分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E5%9B%A0"><span class="nav-number">2.1.</span> <span class="nav-text">原因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%BB%E5%87%BB%E6%AD%A5%E9%AA%A4"><span class="nav-number">2.2.</span> <span class="nav-text">攻击步骤</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">三、总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ELLEN</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ELLEN</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

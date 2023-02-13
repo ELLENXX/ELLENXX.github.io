@@ -1,37 +1,439 @@
-{% extends '_layout.swig' %}
-{% import '_macro/post.swig' as post_template %}
-{% import '_macro/sidebar.swig' as sidebar_template %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
 
 
-{% block title %}{{ page.title }} | {{ config.title }}{% endblock %}
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
 
-{% block page_class %}page-post-detail{% endblock %}
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="背景北京时间2022年9月10日，DPC代币合约遭到黑客攻击，损失超73,614BUSD。 DPC合约是一个ERC20代币合约，除了基本的ERC20代币功能，用户还可以将DPC代币与BUSD进行质押来获得DPC代币奖励。 攻击记录：https:&#x2F;&#x2F;bscscan.com&#x2F;address&#x2F;0x2109bbecB0a563e204985524Dd3DB2F6254AB419 攻击者地址：0xf211f">
+<meta property="og:type" content="article">
+<meta property="og:title" content="攻击事件分析｜DPC攻击事件分析">
+<meta property="og:url" content="http://example.com/2022/11/30/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="ELLEN&#39;s BLOG">
+<meta property="og:description" content="背景北京时间2022年9月10日，DPC代币合约遭到黑客攻击，损失超73,614BUSD。 DPC合约是一个ERC20代币合约，除了基本的ERC20代币功能，用户还可以将DPC代币与BUSD进行质押来获得DPC代币奖励。 攻击记录：https:&#x2F;&#x2F;bscscan.com&#x2F;address&#x2F;0x2109bbecB0a563e204985524Dd3DB2F6254AB419 攻击者地址：0xf211f">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20221130131625508.png">
+<meta property="og:image" content="http://example.com/images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20221130122920065.png">
+<meta property="og:image" content="http://example.com/images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20221130123928518.png">
+<meta property="og:image" content="http://example.com/images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20221130125826087.png">
+<meta property="og:image" content="http://example.com/images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20221130125057699.png">
+<meta property="og:image" content="http://example.com/images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20221130125229810.png">
+<meta property="article:published_time" content="2022-11-30T05:17:27.536Z">
+<meta property="article:modified_time" content="2022-11-30T06:16:43.237Z">
+<meta property="article:author" content="ELLEN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20221130131625508.png">
+
+<link rel="canonical" href="http://example.com/2022/11/30/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
 
 
-{% block content %}
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
 
-  <div id="posts" class="posts-expand">
-    {{ post_template.render(page) }}
+  <title>攻击事件分析｜DPC攻击事件分析 | ELLEN's BLOG</title>
+  
 
-    <div class="post-spread">
-      {% if theme.jiathis %}
-        {% include '_partials/share/jiathis.swig' %}
-      {% elseif theme.baidushare %}
-        {% include '_partials/share/baidushare.swig' %}
-      {% elseif theme.add_this_id %}
-        {% include '_partials/share/add-this.swig' %}
-      {% elseif theme.duoshuo_shortname and theme.duoshuo_share %}
-        {% include '_partials/share/duoshuo_share.swig' %}
-      {% endif %}
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
     </div>
   </div>
 
-{% endblock %}
+  <div class="site-meta">
 
-{% block sidebar %}
-  {{ sidebar_template.render(true) }}
-{% endblock %}
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ELLEN's BLOG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
 
-{% block script_extra %}
-  {% include '_scripts/pages/post-details.swig' %}
-{% endblock %}
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/11/30/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ELLEN">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ELLEN's BLOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          攻击事件分析｜DPC攻击事件分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-11-30 13:17:27 / 修改时间：14:16:43" itemprop="dateCreated datePublished" datetime="2022-11-30T13:17:27+08:00">2022-11-30</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>北京时间2022年9月10日，DPC代币合约遭到黑客攻击，损失超73,614BUSD。</p>
+<p>DPC合约是一个ERC20代币合约，除了基本的ERC20代币功能，用户还可以将DPC代币与BUSD进行质押来获得DPC代币奖励。</p>
+<p>攻击记录：<a target="_blank" rel="noopener" href="https://bscscan.com/address/0x2109bbecB0a563e204985524Dd3DB2F6254AB419">https://bscscan.com/address/0x2109bbecB0a563e204985524Dd3DB2F6254AB419</a></p>
+<p>攻击者地址：0xf211fa86cbc60d693d687075b03dff3c225b25c9</p>
+<p>攻击合约：0x2109bbecb0a563e204985524dd3db2f6254ab419</p>
+<h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>DPC合约中计算奖励算法存在漏洞，攻击者通过调用<code>claimStakeLp</code>函数取出之前质押的LP，在<code>claimStakeLp</code>中一是没有对每次取出的LP进行数量限制，二是在每次取出LP时计算奖励操作进行了两次，导致计算奖励时会翻倍增加，从而使攻击者有利可图。</p>
+<h2 id="攻击步骤如下"><a href="#攻击步骤如下" class="headerlink" title="攻击步骤如下"></a>攻击步骤如下</h2><p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20221130131625508.png" alt="image-20221130131625508"></p>
+<ol>
+<li><p>向DPC转移42次BUSD，每次100枚，共计4200BUSD。此步骤调用了dpc合约中的tokenAirdrop方法：<a target="_blank" rel="noopener" href="https://bscscan.com/address/0xb75ca3c3e99747d0e2f6e75a9fbd17f5ac03cebe#code#L1076">https://bscscan.com/address/0xb75ca3c3e99747d0e2f6e75a9fbd17f5ac03cebe#code#L1076</a></p>
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20221130122920065.png" alt="image-20221130122920065"></p>
+</li>
+<li><p>用50枚BUSD兑换DPC，扣除手续费共兑换了约3.63枚。用兑换得到的DPC与约47.4个BUSD进行流动性添加，获得约12.29LP，并将这些流动性进行质押。</p>
+</li>
+</ol>
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20221130123928518.png" alt="image-20221130123928518"></p>
+<ol start="3">
+<li>前期做好准备后，到达了关键一步。通过调用DPC合约的claimStakeLp方法，多次取出最低的0.000000000000000001LP来获得奖励。</li>
+</ol>
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20221130125826087.png" alt="image-20221130125826087"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">function claimStakeLp(address _from ,uint256 Amountwei) public &#123;</span><br><span class="line">        require(Amountwei &gt; 0,&quot;Quantity error&quot;);</span><br><span class="line">        require(_from==msg.sender,&quot;error&quot;);</span><br><span class="line">        require(dpcLp[_from] &gt;= Amountwei ,&quot;Insufficient authorization limit&quot;);</span><br><span class="line">        IERC20(LpContract).transfer(_from,Amountwei);</span><br><span class="line">				// 在这一步，进行奖励的累加，其中还调用了getClaimQuota函数</span><br><span class="line">				// 然而在getClaimQuota内，oldClaimQuota[_from]又重复了一次累加计算</span><br><span class="line">				// 这是导致漏洞的原因</span><br><span class="line">        oldClaimQuota[_from] = oldClaimQuota[_from].add(getClaimQuota(_from));</span><br><span class="line"></span><br><span class="line">        dpcLp[_from] = dpcLp[_from].sub(Amountwei);</span><br><span class="line"></span><br><span class="line">        time=currTimeStamp();</span><br><span class="line">        dpcLpTime[_from] = time;</span><br><span class="line"></span><br><span class="line">        dpcLpTotal = dpcLpTotal.sub(Amountwei);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">function getClaimQuota(address addr) public view returns (uint256) &#123;</span><br><span class="line">      uint256 ClaimQuota;</span><br><span class="line">      if(dpcAirdrop[addr] &gt; 0 &amp;&amp; dpcLp[addr]&gt;0)&#123;</span><br><span class="line">           uint256 QuotastartTime;</span><br><span class="line">           uint256 limit = 50 * 10**18;</span><br><span class="line">           uint256 LpQuotaNum = dpcLp[addr].mul(getLpPrice()).mul(lpQuota).div(100);</span><br><span class="line">           uint256 secondQuota;</span><br><span class="line">           if(getDpcPrice()&gt;0)&#123;</span><br><span class="line">               secondQuota = LpQuotaNum.div(24*60*60).div(getDpcPrice());</span><br><span class="line">           &#125;</span><br><span class="line"></span><br><span class="line">           uint256 limitSecondQuota = limit.div(24*60*60);</span><br><span class="line">           if(secondQuota &gt; limitSecondQuota)&#123;</span><br><span class="line">               secondQuota = limitSecondQuota;</span><br><span class="line">           &#125;</span><br><span class="line">           uint256 nowTime = currTimeStamp();</span><br><span class="line"></span><br><span class="line">           if(dpcLpTime[addr]&gt;ClaimQuotaTime[addr])&#123;</span><br><span class="line">               QuotastartTime = dpcLpTime[addr];</span><br><span class="line">           &#125;else&#123;</span><br><span class="line">               QuotastartTime = ClaimQuotaTime[addr];</span><br><span class="line">           &#125;</span><br><span class="line">           ClaimQuota = (nowTime.sub(QuotastartTime)).mul(secondQuota);</span><br><span class="line">           if(ClaimQuota &gt; dpcAirdrop[addr])&#123;</span><br><span class="line">               ClaimQuota = dpcAirdrop[addr];</span><br><span class="line">           &#125;</span><br><span class="line">      &#125;else&#123;</span><br><span class="line">           ClaimQuota = 0;</span><br><span class="line">      &#125;</span><br><span class="line">      // 这里进行了一次相加</span><br><span class="line">      ClaimQuota = ClaimQuota.add(oldClaimQuota[addr]);</span><br><span class="line"></span><br><span class="line">      return ClaimQuota;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>5.获利后，调用claimDpcAirdrop方法，这次获得奖励约20,602 DPC，后续又兑换为 75,664 BUSD</p>
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20221130125057699.png" alt="image-20221130125057699"></p>
+<p>后续攻击者又重复之前的一些步骤，继续获利。</p>
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CDPC%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/image-20221130125229810.png" alt="image-20221130125229810"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>合约代码需要进行多次审查</li>
+<li>针对DPC中出现的漏洞，最好对每次取出的代币数量进行一定的限制，计算奖励时也不要出现这种多次累加的情况。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/11/23/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9C%E5%A5%96%E5%8A%B1%E8%AE%A1%E7%AE%97%E5%8F%98%E9%87%8F%E5%8F%AF%E6%8E%A7/" rel="prev" title="攻击事件分析｜AurumNodePool合约遭受攻击">
+      <i class="fa fa-chevron-left"></i> 攻击事件分析｜AurumNodePool合约遭受攻击
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/12/07/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CRFB%E4%B8%80%E8%B5%B7%E5%A4%9A%E6%AC%A1%E4%B9%B0%E5%8D%96%E8%8E%B7%E5%88%A9%E5%88%86%E6%9E%90/" rel="next" title="攻击事件分析｜RFB一起多次买卖获利分析">
+      攻击事件分析｜RFB一起多次买卖获利分析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E5%9B%A0"><span class="nav-number">2.</span> <span class="nav-text">原因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%BB%E5%87%BB%E6%AD%A5%E9%AA%A4%E5%A6%82%E4%B8%8B"><span class="nav-number">3.</span> <span class="nav-text">攻击步骤如下</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ELLEN</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ELLEN</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

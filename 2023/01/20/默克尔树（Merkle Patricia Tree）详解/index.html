@@ -1,37 +1,641 @@
-{% extends '_layout.swig' %}
-{% import '_macro/post.swig' as post_template %}
-{% import '_macro/sidebar.swig' as sidebar_template %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
 
 
-{% block title %}{{ page.title }} | {{ config.title }}{% endblock %}
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
 
-{% block page_class %}page-post-detail{% endblock %}
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="一、概念本文是阅读《深入以太坊智能合约开发》的附录A Merkle Patricia Tree后的知识归纳以及扩展。  默克尔树（Merkle Patricia Tree）在以太坊中是一种通用的，用来存储键值对的数据结构，可以简称为“MPT”，是字典树Redix tree的变种，也是以太坊的核心算法之一。 MPT对于树中节点的插入、查找、删除操作，这种结构可以提供对数级别的复杂度O(log(N))">
+<meta property="og:type" content="article">
+<meta property="og:title" content="默克尔树（Merkle Patricia Tree）详解">
+<meta property="og:url" content="http://example.com/2023/01/20/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="ELLEN&#39;s BLOG">
+<meta property="og:description" content="一、概念本文是阅读《深入以太坊智能合约开发》的附录A Merkle Patricia Tree后的知识归纳以及扩展。  默克尔树（Merkle Patricia Tree）在以太坊中是一种通用的，用来存储键值对的数据结构，可以简称为“MPT”，是字典树Redix tree的变种，也是以太坊的核心算法之一。 MPT对于树中节点的插入、查找、删除操作，这种结构可以提供对数级别的复杂度O(log(N))">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2023/01/20/images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120151314398.png">
+<meta property="og:image" content="http://example.com/images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120152905919.png">
+<meta property="og:image" content="http://example.com/images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120154202691.png">
+<meta property="og:image" content="http://example.com/images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120155033149.png">
+<meta property="og:image" content="http://example.com/images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120160053382.png">
+<meta property="og:image" content="http://example.com/2023/01/20/images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120160420895.png">
+<meta property="og:image" content="http://example.com/images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120160833192.png">
+<meta property="og:image" content="http://example.com/images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120161243321.png">
+<meta property="og:image" content="http://example.com/images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120163214097.png">
+<meta property="article:published_time" content="2023-01-20T09:04:48.409Z">
+<meta property="article:modified_time" content="2023-01-22T09:08:59.532Z">
+<meta property="article:author" content="ELLEN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/01/20/images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120151314398.png">
+
+<link rel="canonical" href="http://example.com/2023/01/20/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/">
 
 
-{% block content %}
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
 
-  <div id="posts" class="posts-expand">
-    {{ post_template.render(page) }}
+  <title>默克尔树（Merkle Patricia Tree）详解 | ELLEN's BLOG</title>
+  
 
-    <div class="post-spread">
-      {% if theme.jiathis %}
-        {% include '_partials/share/jiathis.swig' %}
-      {% elseif theme.baidushare %}
-        {% include '_partials/share/baidushare.swig' %}
-      {% elseif theme.add_this_id %}
-        {% include '_partials/share/add-this.swig' %}
-      {% elseif theme.duoshuo_shortname and theme.duoshuo_share %}
-        {% include '_partials/share/duoshuo_share.swig' %}
-      {% endif %}
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
     </div>
   </div>
 
-{% endblock %}
+  <div class="site-meta">
 
-{% block sidebar %}
-  {{ sidebar_template.render(true) }}
-{% endblock %}
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ELLEN's BLOG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
 
-{% block script_extra %}
-  {% include '_scripts/pages/post-details.swig' %}
-{% endblock %}
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/01/20/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ELLEN">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ELLEN's BLOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          默克尔树（Merkle Patricia Tree）详解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-01-20 17:04:48" itemprop="dateCreated datePublished" datetime="2023-01-20T17:04:48+08:00">2023-01-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-01-22 17:08:59" itemprop="dateModified" datetime="2023-01-22T17:08:59+08:00">2023-01-22</time>
+              </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="一、概念"><a href="#一、概念" class="headerlink" title="一、概念"></a>一、概念</h1><p>本文是阅读《深入以太坊智能合约开发》的附录A Merkle Patricia Tree后的知识归纳以及扩展。</p>
+<blockquote>
+<p>默克尔树（Merkle Patricia Tree）在以太坊中是一种通用的，用来存储键值对的数据结构，可以简称为“MPT”，是字典树Redix tree的变种，也是以太坊的核心算法之一。</p>
+<p>MPT对于树中节点的插入、查找、删除操作，这种结构可以提供对数级别的复杂度O(log(N))，所以它是一种相对高效的存储结构。</p>
+</blockquote>
+<h1 id="二、如何根据键值对构造默克尔树"><a href="#二、如何根据键值对构造默克尔树" class="headerlink" title="二、如何根据键值对构造默克尔树"></a>二、如何根据键值对构造默克尔树</h1><h2 id="2-1-节点类型"><a href="#2-1-节点类型" class="headerlink" title="2.1 节点类型"></a>2.1 节点类型</h2><p>树类型的数据结构，都会有节点的概念，MPT也不例外。</p>
+<p>MPT中有三种节点类型：branch、leaf、extension：</p>
+<ol>
+<li><p><strong>branch（分支）</strong></p>
+<ul>
+<li>由17个元素组成的元组，格式为：(v0,……,v15,vt)。</li>
+<li>其中，v0～v15的元素是以其索引值（0x0~0xf）为路径的子节点数据的keccak256哈希值，如果没有子节点数据则元素为空。</li>
+<li>vt为根节点到当前节点的父节点所经过的路径对应的value值，也就是根节点到父节点所经过的路径组成了一个键key，这个key对应的value存在vt里面，如果这个key没有对应的value，那么vt为空。</li>
+</ul>
+</li>
+<li><p><strong>leaf（叶）</strong></p>
+<ul>
+<li>两个元素组成的元组，格式为：（encodePath,value）</li>
+<li>encodedPath为当前节点路径的十六进制前缀编码</li>
+<li>value是从根节点到当前节点路径组成的键对应的值</li>
+</ul>
+</li>
+<li><p><strong>extension（扩展）</strong></p>
+<ul>
+<li>两个元素组成的元组，格式为：（encodePath,key）</li>
+<li>encodedPath为当前节点路径的十六进制前缀编码</li>
+<li>key为当前节点子节点数据的keccak256哈希值</li>
+</ul>
+</li>
+</ol>
+<p>总结一下上述的那一堆概念：</p>
+<ul>
+<li><p>键值对</p>
+</li>
+<li><p>extension节点记录着：路径、子节点的哈希值。</p>
+</li>
+<li><p>leaf节点记录着：路径、vlaue。</p>
+</li>
+<li><p>branch记录着：以索引值为路径的子节点的哈希值、从根节点到branch的父节点路径组成的键对应的value。</p>
+</li>
+<li><p>value值在leaf和branch节点中存放，key被拆解开，最终由extension、leaf的encodePath以及branch的索引值组成。</p>
+</li>
+</ul>
+<h2 id="2-2-十六进制前缀编码"><a href="#2-2-十六进制前缀编码" class="headerlink" title="2.2 十六进制前缀编码"></a>2.2 十六进制前缀编码</h2><p>branch和extension元组的第一个元素encodePath就是当前节点路径的十六进制前缀编码（Hex-Pretix Encoding，HP编码）。使用HP编码能够区分节点是扩展结点还是叶子节点。<br>而HP编码，和当前节点类型还有当前路径半字节长度的奇偶有关。</p>
+<blockquote>
+<p>半字节是4位二进制，即1位16进制。</p>
+<p>0xf是半字节，0xff是1字节。</p>
+<p>1111是半字节，11111111是1字节。</p>
+</blockquote>
+<p>共有四种前缀：</p>
+<table>
+<thead>
+<tr>
+<th>路径所对应的节点类型</th>
+<th>路径长度</th>
+<th>二进制数值</th>
+<th>十六进制数值</th>
+<th>最终前缀（HP前缀）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Extension</td>
+<td>偶数个半字节</td>
+<td>0000</td>
+<td>0x0</td>
+<td>0x00</td>
+</tr>
+<tr>
+<td>Extension</td>
+<td>奇数个半字节</td>
+<td>0001</td>
+<td>0x1</td>
+<td>0x1</td>
+</tr>
+<tr>
+<td>leaf</td>
+<td>偶数个半字节</td>
+<td>0010</td>
+<td>0x2</td>
+<td>0x20</td>
+</tr>
+<tr>
+<td>leaf</td>
+<td>奇数个半字节</td>
+<td>0011</td>
+<td>0x3</td>
+<td>0x2</td>
+</tr>
+</tbody></table>
+<p>所以extension节点有两种前缀：0x00、0x1；leaf有两种前缀：0x20、0x3。</p>
+<p>可以看到最终前缀在偶数个半字节0x0、0x2后补了一个0，变成了0x00，0x20，目的是为了凑成整字节，避免出现半字节导致长度不便于合并。</p>
+<p>HP前缀需要放在原始路径前面去组成HP编码，实例：</p>
+<table>
+<thead>
+<tr>
+<th>原始数据</th>
+<th>节点类型</th>
+<th>HP前缀</th>
+<th>HP编码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>(0x012345,key)（注：012345长度为偶数）</td>
+<td>Extension</td>
+<td>0x00 (0000 0000)</td>
+<td>(<strong>0x00</strong>012345,key)</td>
+</tr>
+<tr>
+<td>(0x12345,key)（注：12345长度为奇数）</td>
+<td>Extension</td>
+<td>0x1 (0001)</td>
+<td>(<strong>0x1</strong>2345,key)</td>
+</tr>
+<tr>
+<td>(0x0f1cb8,value)（注：0f1cb8长度为偶数）</td>
+<td>leaf</td>
+<td>0x20 (0010 0000)</td>
+<td>(<strong>0x20</strong>0f1cb8,value)</td>
+</tr>
+<tr>
+<td>(0xf1cb8,value)（注：f1cb8长度为奇数）</td>
+<td>leaf</td>
+<td>0x3 (0011)</td>
+<td>(<strong>0x3</strong>f1cb8,value)</td>
+</tr>
+</tbody></table>
+<h2 id="2-3-构造一颗默克尔树"><a href="#2-3-构造一颗默克尔树" class="headerlink" title="2.3 构造一颗默克尔树"></a>2.3 构造一颗默克尔树</h2><p>上面的概念不容易理解，现在我们以下面的例子，一步步来进行树的构造，帮助我们更好的理解：</p>
+<blockquote>
+<p>我们假设有一组（4个）键值对数据需要用树来存储：</p>
+<p>&lt;64 6f&gt; : ‘verb’</p>
+<p>&lt;64 6f 67&gt; : ‘puppy’</p>
+<p>&lt;64 6f 67 65&gt; : ‘coin’</p>
+<p>&lt;68 6f 72 73 65&gt; : ‘stallion’</p>
+<p>为方便解释说明以及阅读，我们把键值对数据的“键”表示为十六进制字符串，“值”则保留为原始字符串。在实际使用时，它们都需要经过特定的编码变换。</p>
+</blockquote>
+<h4 id="1"><a href="#1" class="headerlink" title="1."></a>1.</h4><blockquote>
+<p>&lt;**6**4 6f&gt; : ‘verb’</p>
+<p>&lt;**6**4 6f 67&gt; : ‘puppy’</p>
+<p>&lt;**6**4 6f 67 65&gt; : ‘coin’</p>
+<p>&lt;**6**8 6f 72 73 65&gt; : ‘stallion’</p>
+</blockquote>
+<p>每棵树都有根节点，默克尔树的根节点会保存当前路径和子节点哈希，所以很明显，根节点会是一个extension节点。</p>
+<p>上面节点类型介绍了extension格式为：（encodePath,key），encodePath是十六进制的HP编码。分析给出的4个键我们可以得出都是以6开头，后面分为4、8两条路。所以根节点存储的共同路径值为0x6。</p>
+<p>由于0x6只有一位，所以路径长度是奇数，节点又是extension类型，所以HP前缀是0x1，组合出来的HP编码：<strong>0x1</strong>6。</p>
+<p>所以当前默克尔树如下图：</p>
+<img src="../images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120151314398.png" alt="image-20230120151314398" style="zoom:50%;" />
+
+<p>HashA代表着子节点的哈希值。</p>
+<h4 id="2"><a href="#2" class="headerlink" title="2."></a>2.</h4><blockquote>
+<p>&lt;6**4** 6f&gt; : ‘verb’</p>
+<p>&lt;6**4** 6f 67&gt; : ‘puppy’</p>
+<p>&lt;6**4** 6f 67 65&gt; : ‘coin’</p>
+<p>&lt;6**8** 6f 72 73 65&gt; : ‘stallion’</p>
+</blockquote>
+<p>根节点已经找到，但在根节点后出现了两条路，这个时候需要使用branch来处理这种多条路径的情况。</p>
+<p>上文说到，branch由17个元素组成的元组，格式为：(v0,……,v15,vt)。其中，v0～v15是以其索引值（0x0~0xf）为路径的子节点数据的keccak256哈希值，如果没有子节点数据则为空。</p>
+<p>这里4和8就是索引值，4、8对应元素是其字节点的哈希值。</p>
+<p>所以当前默克尔树如下图：</p>
+<p><img src="/../images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120152905919.png" alt="image-20230120152905919"></p>
+<h4 id="3"><a href="#3" class="headerlink" title="3."></a>3.</h4><blockquote>
+<p>&lt;64 6f&gt; : ‘verb’</p>
+<p>&lt;64 6f 67&gt; : ‘puppy’</p>
+<p>&lt;64 6f 67 65&gt; : ‘coin’</p>
+<p>&lt;68 <strong>6f 72 73 65&gt; : ‘stallion’</strong></p>
+</blockquote>
+<p>我们可以观察到，在0x68后只有唯一路径了，即0x6f727356，而value为“stallion”，所以不再分叉的情况下，就不是branch或者extension了，而应该是一个leaf叶节点。</p>
+<p>上文提到，leaf节点是两个元素组成的元组，格式为：（encodePath,value），encodedPath为当前节点路径的十六进制前缀编码，value是从根节点到当前节点路径组成的键，所对应的值。</p>
+<p>当前节点的路径是0x6f727356，长度是偶数，节点类型是leaf，所以可以得出HP前缀是0x20，HP编码是<strong>0x20</strong>6f727356。所以可得该leaf节点：（0x206f727356,”stallion”）。</p>
+<p>所以当前默克尔树如下图：</p>
+<p><img src="/../images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120154202691.png" alt="image-20230120154202691"></p>
+<h4 id="4"><a href="#4" class="headerlink" title="4."></a>4.</h4><blockquote>
+<p>&lt;64 **6f**&gt; : ‘verb’</p>
+<p>&lt;64 **6f** 67&gt; : ‘puppy’</p>
+<p>&lt;64 **6f** 67 65&gt; : ‘coin’</p>
+<p>&lt;68 6f 72 73 65&gt; : ‘stallion’</p>
+</blockquote>
+<p>说完了8，我们再说说4这部分，路径4后面有共同路径6f，6f后才产生null和6两条分叉。</p>
+<p>共同路径6f是一个extension节点，extension节点格式不再介绍，开始计算HP编码，6f长度是偶数，又是extension类型，所以HP前缀为0x00，HP编码为<strong>0x00</strong>6f。</p>
+<p>所以当前默克尔树如下图：</p>
+<p><img src="/../images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120155033149.png" alt="image-20230120155033149"></p>
+<h4 id="5"><a href="#5" class="headerlink" title="5."></a>5.</h4><blockquote>
+<p>&lt;64 6f&gt; <strong>: ‘verb’</strong></p>
+<p>&lt;64 6f **6**7&gt; : ‘puppy’</p>
+<p>&lt;64 6f **6**7 65&gt; : ‘coin’</p>
+<p>&lt;68 6f 72 73 65&gt; : ‘stallion’</p>
+</blockquote>
+<p>6f后分出了null和6，是多条路径，所以HashD的节点是一个branch节点，6是索引值，索引为6的元素存储着子节点hash；而null是没有的，上文提到：vt为根节点到当前节点的父节点所经过的路径组成的键对应的value。</p>
+<p>则代表当前HashD节点该存储从根节点到父节点0x646f组成的键对应的值：’verb’。那么该由HashD的vt保存’verb’。</p>
+<p>所以当前默克尔树如下图：</p>
+<p><img src="/../images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120160053382.png" alt="image-20230120160053382"></p>
+<h4 id="6"><a href="#6" class="headerlink" title="6."></a>6.</h4><blockquote>
+<p>&lt;64 6f&gt; : ‘verb’</p>
+<p>&lt;64 6f 6**7**&gt; : ‘puppy’</p>
+<p>&lt;64 6f 6**7** 65&gt; : ‘coin’</p>
+<p>&lt;68 6f 72 73 65&gt; : ‘stallion’</p>
+</blockquote>
+<p>接下来是共同路径7，一个extension节点，开始计算HP编码，7长度是奇数，又是extension类型，所以HP前缀为0x1，HP编码为<strong>0x1</strong>7。</p>
+<p>所以当前默克尔树如下图：</p>
+<img src="../images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120160420895.png" alt="image-20230120160420895" style="zoom:50%;" />
+
+<h4 id="8"><a href="#8" class="headerlink" title="8."></a>8.</h4><blockquote>
+<p>&lt;64 6f&gt; : ‘verb’</p>
+<p>&lt;64 6f 67&gt; <strong>: ‘puppy’</strong></p>
+<p>&lt;64 6f 67 **6**5&gt; : ‘coin’</p>
+<p>&lt;68 6f 72 73 65&gt; : ‘stallion’</p>
+</blockquote>
+<p>7后分出了null和6，是多条路径，与第五步相同，HashF是一个branch节点，索引为6的元素存储子节点哈希，vt存储’puppy’的值</p>
+<p>所以当前默克尔树如下图：</p>
+<p><img src="/../images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120160833192.png" alt="image-20230120160833192"></p>
+<h4 id="9"><a href="#9" class="headerlink" title="9."></a>9.</h4><blockquote>
+<p>&lt;64 6f&gt; : ‘verb’</p>
+<p>&lt;64 6f 67&gt; : ‘puppy’</p>
+<p>&lt;64 6f 67 6<strong>5&gt; : ‘coin’</strong></p>
+<p>&lt;68 6f 72 73 65&gt; : ‘stallion’</p>
+</blockquote>
+<p>好了，现在只剩下一条路径了，表示这最后一个是一个leaf叶子节点，路径为5，路径长度为奇数，索引HP前缀为0x3，HP编码为<strong>0x3</strong>5</p>
+<p>所以当前也是最终的默克尔树如下图：</p>
+<p><img src="/../images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120161243321.png" alt="image-20230120161243321"></p>
+<p>以上就是这棵默克尔树构造的全部过程了，写得很详细，是希望能够为在阅读书籍时没有理顺思路的小伙伴们提供一些帮助。</p>
+<h1 id="三、总结"><a href="#三、总结" class="headerlink" title="三、总结"></a>三、总结</h1><p>从构造过程中我们可以看出，MPT中节点之间，是通过哈希值来确定的。由于哈希值的特性，只要数据有了微小改动，就会导致根节点改变，所以我们可以用树的根节点来代表整个树中数据的状态，这样就不用保存整个树的数据。</p>
+<p>在以太坊中，默克尔树有着大量的应用，比如保存和验证系统中的所有账户状态、所有合约的存储状态、区块中的所有交易和所有收据数据的状态等。</p>
+<p><img src="/../images/%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91%EF%BC%88Merkle%20Patricia%20Tree%EF%BC%89%E8%AF%A6%E8%A7%A3/image-20230120163214097.png" alt="image-20230120163214097"></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a target="_blank" rel="noopener" href="https://learnblockchain.cn/2020/01/27/7c1fcd777d7b">【深度知识】以太坊区块数据结构及以太坊的4棵数</a></p>
+<p>《深入以太坊智能合约开发》</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/12/07/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CRFB%E4%B8%80%E8%B5%B7%E5%A4%9A%E6%AC%A1%E4%B9%B0%E5%8D%96%E8%8E%B7%E5%88%A9%E5%88%86%E6%9E%90/" rel="prev" title="攻击事件分析｜RFB一起多次买卖获利分析">
+      <i class="fa fa-chevron-left"></i> 攻击事件分析｜RFB一起多次买卖获利分析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/02/13/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CBEVO%20%E4%BB%A3%E5%B8%81deliver%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" rel="next" title="攻击事件分析｜BEVO 代币deliver攻击事件分析">
+      攻击事件分析｜BEVO 代币deliver攻击事件分析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">一、概念</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%A6%82%E4%BD%95%E6%A0%B9%E6%8D%AE%E9%94%AE%E5%80%BC%E5%AF%B9%E6%9E%84%E9%80%A0%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91"><span class="nav-number">2.</span> <span class="nav-text">二、如何根据键值对构造默克尔树</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 节点类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-%E5%8D%81%E5%85%AD%E8%BF%9B%E5%88%B6%E5%89%8D%E7%BC%80%E7%BC%96%E7%A0%81"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 十六进制前缀编码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-%E6%9E%84%E9%80%A0%E4%B8%80%E9%A2%97%E9%BB%98%E5%85%8B%E5%B0%94%E6%A0%91"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 构造一颗默克尔树</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1"><span class="nav-number">2.3.0.1.</span> <span class="nav-text">1.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2"><span class="nav-number">2.3.0.2.</span> <span class="nav-text">2.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3"><span class="nav-number">2.3.0.3.</span> <span class="nav-text">3.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4"><span class="nav-number">2.3.0.4.</span> <span class="nav-text">4.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5"><span class="nav-number">2.3.0.5.</span> <span class="nav-text">5.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6"><span class="nav-number">2.3.0.6.</span> <span class="nav-text">6.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8"><span class="nav-number">2.3.0.7.</span> <span class="nav-text">8.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#9"><span class="nav-number">2.3.0.8.</span> <span class="nav-text">9.</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">三、总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ELLEN</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ELLEN</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
