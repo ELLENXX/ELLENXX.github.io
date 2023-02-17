@@ -145,6 +145,80 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/02/17/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CPlatypus%E9%81%AD%E9%81%87%E9%97%AA%E7%94%B5%E8%B4%B7%EF%BC%8C%E6%8D%9F%E5%A4%B1$900%E4%B8%87/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="ELLEN">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ELLEN's BLOG">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/02/17/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CPlatypus%E9%81%AD%E9%81%87%E9%97%AA%E7%94%B5%E8%B4%B7%EF%BC%8C%E6%8D%9F%E5%A4%B1$900%E4%B8%87/" class="post-title-link" itemprop="url">攻击事件分析｜攻击事件分析｜Platypus遭遇闪电贷，损失$900万</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-02-17 12:33:18 / 修改时间：12:41:00" itemprop="dateCreated datePublished" datetime="2023-02-17T12:33:18+08:00">2023-02-17</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="一、基本信息"><a href="#一、基本信息" class="headerlink" title="一、基本信息"></a>一、基本信息</h1><p>2023年2月17日安全公司CertiK Alert发推：AAVE上发生一起闪电贷攻击，导致稳定币交易项目Platypus损失了900万美元的资产。</p>
+<p>Twitter: <a target="_blank" rel="noopener" href="https://twitter.com/CertiKAlert/status/1626345868151468033">https://twitter.com/CertiKAlert/status/1626345868151468033</a></p>
+<p>分析工具：<a target="_blank" rel="noopener" href="https://dashboard.tenderly.co/tx/ava/0x1266a937c2ccd970e5d7929021eed3ec593a95c68a99b4920c2efa226679b430">https://dashboard.tenderly.co/tx/ava/0x1266a937c2ccd970e5d7929021eed3ec593a95c68a99b4920c2efa226679b430</a></p>
+<h1 id="二、事件分析"><a href="#二、事件分析" class="headerlink" title="二、事件分析"></a>二、事件分析</h1><h2 id="漏洞原因"><a href="#漏洞原因" class="headerlink" title="漏洞原因"></a>漏洞原因</h2><p>MasterPlatypusV4合约的<code>emergencyWithdraw</code>函数验证出现问题，在检查偿付能力时，只要借来的资产不超过借款限额就会返回true，验证通过后允许用户提取所有质押的资金。</p>
+<p>emergencyWithdraw一般是用于紧急情况时提取质押资产。</p>
+<h2 id="攻击步骤分析"><a href="#攻击步骤分析" class="headerlink" title="攻击步骤分析"></a>攻击步骤分析</h2><h3 id="1"><a href="#1" class="headerlink" title="1."></a>1.</h3><p>攻击者向Platypus USDC资产(LP-USDC)存入了闪电贷获得的4400万USDC，获得了4400万LP-USDC。<br>然后攻击者将4400万LP-USD质押到了MasterPlatypusV4。</p>
+<h3 id="2"><a href="#2" class="headerlink" title="2."></a>2.</h3><p>攻击者调用函数<code>borrow()</code>在合约platyputreasure中铸造约4179万 USP。这个金额是没有超过4400万的95%的（4400*95%&#x3D;4180）。</p>
+<h3 id="3"><a href="#3" class="headerlink" title="3."></a>3.</h3><p>因为攻击者借入的资产没有超过质押资产95%的上限，所以<code>emergencyWithdraw</code>函数在验证偿付能力<code>isSolvent</code>值时返回为“true”。</p>
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CPlatypus%E9%81%AD%E9%81%87%E9%97%AA%E7%94%B5%E8%B4%B7%EF%BC%8C%E6%8D%9F%E5%A4%B1$900%E4%B8%87/image-20230217113542420.png" alt="image-20230217113542420"></p>
+<p>而<code>platypusTreasure.isSolven</code>还有第二个返回值，是<code>debtAmount</code>,代表债务总额，值为41,794,533,641,783,253,909,671,999，约4179万。</p>
+<p><strong>这里没有验证债务总额<code>debtAmount</code>的值，造成只要<code>isSolvent</code>的返回值<code>solvent=true</code>就可以取出质押资产，这是漏洞产生的主要原因。</strong></p>
+<p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CPlatypus%E9%81%AD%E9%81%87%E9%97%AA%E7%94%B5%E8%B4%B7%EF%BC%8C%E6%8D%9F%E5%A4%B1$900%E4%B8%87/image-20230217121330189.png" alt="image-20230217121330189"></p>
+<h3 id="4"><a href="#4" class="headerlink" title="4."></a>4.</h3><p>攻击者能够取出之前质押全部4400万枚LP-USDC，调用withdraw移除了流动性，提取出了约4399万的USDC(有手续费损耗)<br>注意，这个时候借出来的4179万USP并没有被收回.</p>
+<p>偿还闪电贷，并开始通过Platypus Finance池将之前借出来的4179万USP换成多种资产。</p>
+<p>最后Platypus平台的总损失价值约为900万美元的资产。</p>
+<h1 id="三、总结"><a href="#三、总结" class="headerlink" title="三、总结"></a>三、总结</h1><p><strong>这起事件的漏洞在于<code>emergencyWithdraw</code>函数只检查了债务金额是否达到最大限额，没有检查债务总额。导致只要借入的资产没有超过质押资产95%的上限就可以取出质押的资产，并且原来的借款也没有被扣除。</strong></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2023/02/14/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CMTSG%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1433,7 +1507,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-count">10</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
