@@ -216,7 +216,7 @@
 <p><a target="_blank" rel="noopener" href="https://bscscan.com/address/0x26f1457f067bf26881f311833391b52ca871a4b5#code#L417">https://bscscan.com/address/0x26f1457f067bf26881f311833391b52ca871a4b5#code#L417</a></p>
 <p><img src="/../images/%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90%EF%BD%9CRFB%E4%B8%80%E8%B5%B7%E5%A4%9A%E6%AC%A1%E4%B9%B0%E5%8D%96%E8%8E%B7%E5%88%A9%E5%88%86%E6%9E%90/image-20221207160904379.png" alt="image-20221207160904379"></p>
 <p>这里应该是随机出的数能刚好满足<code>randnum%(10*luckyMultiplier) == 8</code>的条件，然后执行了<code>distributor.withdrawPlazz(buyer, buyBNBamount.mul(90).div(100))</code>，<code>distributor</code>在合约创建是已经确定</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">distributor = IDividendDistributor(0x2BD049f1a6A4e93421D93d72AfB7Cb22Cd958c43);</span><br></pre></td></tr></table></figure>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">distributor</span> <span class="operator">=</span> IDividendDistributor(<span class="number">0</span>x2BD049f1a6A4e93421D93d72AfB7Cb22Cd958c43)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
 
 <p>这里的<code>buyer</code>就是<code>0xd5de2914bc6d2f005228a04289e8d518c710a049</code>的地址。</p>
 <p>攻击步骤很简单：</p>

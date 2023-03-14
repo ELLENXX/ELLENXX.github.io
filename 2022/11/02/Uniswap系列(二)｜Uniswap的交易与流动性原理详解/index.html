@@ -273,13 +273,13 @@
 <p>​	比如增加2000个A token，20个B token，那么按照公式计算，会增发200LPS。如果说我要增加2000个A token，30个B token，那么会取min(2000&#x2F;100000，30&#x2F;1000)*10000&#x3D;50&#x3D;200，还是会增发200LPS，另一种多出来B的不会去质押，会返还避免损失。当然，如果直接操作Pair合约没有自己进行校验，可能导致多余的的B不会返还。</p>
 <p><img src="/../images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102132232247.png" alt="image-20221102132232247"></p>
 <p>​	如果要销毁流动性，就会等比例的返还A、B两种token，计算公式如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">x_withdraw = s_remove/s_current * x_current</span><br><span class="line">y_withdraw = s_remove/s_current * y_current</span><br></pre></td></tr></table></figure>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">x_withdraw</span> = s_remove/s_current * x_current</span><br><span class="line"><span class="attr">y_withdraw</span> = s_remove/s_current * y_current</span><br></pre></td></tr></table></figure>
 
 <p>比如现在销毁100LPS，那么就会取的A 共计（100&#x2F;10200）* 102000 &#x3D; 1000，B共计：（100&#x2F;10200）* 1020 &#x3D; 10。此时LPS &#x3D; 10200-100&#x3D;10100。</p>
 <p><img src="/../images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102133727220.png" alt="image-20221102133727220"></p>
 <h3 id="4-3-交易"><a href="#4-3-交易" class="headerlink" title="4.3 交易"></a>4.3 交易</h3><p><img src="/../images/Uniswap%E7%9A%84%E4%BA%A4%E6%98%93%E4%B8%8E%E6%B5%81%E5%8A%A8%E6%80%A7%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/image-20221102142719452.png" alt="image-20221102142719452"></p>
 <p>​	如上图所示，该流动性池子最开始有100X和1Y，所以初始价格是100个Xtoken，可以兑换1个Ytoken。而价格曲线遵循<code>x*y=k</code>，所以：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(x+x_swap) * (y-y_swap) = k</span><br><span class="line">y_swap = y- k/(x+x_swap) = (x_swap*y)/x+x_swap</span><br></pre></td></tr></table></figure>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">(x+x_swap)</span> * <span class="comment">(y-y_swap)</span> = k</span><br><span class="line">y_swap = y- k/<span class="comment">(x+x_swap)</span> = <span class="comment">(x_swap*y)</span>/x+x_swap</span><br></pre></td></tr></table></figure>
 
 <p>​	而X、Ytoken的价格也会随着两者数量的变化而发生改变，最终形成一条价格曲线<code>x*y=k</code>。</p>
 <p>​	如上图所示，原流动性池中两种代币余额为100 X和1 Y，可认为Y相对X的价格为1 Y &#x3D; 100 X，此时要通过流动性池交易20个X，如果按照当前价格全量交易的话，应该换回 20 &#x2F; 100 &#x3D; 0.2 个Y，而在Uniswap中，每当发生交易时，都会向交易发送者收取 0.3% 的费用。这笔费用在交易完成后按比例分配给池中的所有 LP。所以再减去0.3%的手续费，最后返回0.1994个Y，但实际返回了0.1658个Y，我们来逐步分析一下：</p>
@@ -287,7 +287,7 @@
 <li><p>输入20个X，先扣除0.3%的手续费，即实际交易量为19.94个X。</p>
 </li>
 <li><p>按照x*y&#x3D;k（k&#x3D;1*100&#x3D;100）的公式进行计算：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(100+19.94) * (1-y_swap) = 100。</span><br><span class="line">y约为0.1658.</span><br></pre></td></tr></table></figure>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">(100+19.94)</span> * <span class="comment">(1-y_swap)</span> = <span class="number">100</span>。</span><br><span class="line">y约为<span class="number">0.1658</span>.</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>Uniswap pair会给交易者地址返回0.1658个Y，此交易平均交易价格为 1 Y &#x3D; 20 &#x2F; 0.1658 X &#x3D; 120.6273 X，比交易开始时的100要高20%多，主要是因为交易量20个X相对于流动性池的比例较大（20%），相当于大额交易，对价格会产生较大影响，直观的感觉就是市场上有人大量买入Y，从而导致Y的价格上涨，此笔交易之后，交易池中Y相对于X的价格变为了143.8504。</p>
 </li>
